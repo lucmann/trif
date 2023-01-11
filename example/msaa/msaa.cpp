@@ -191,8 +191,8 @@ int main()
     // camera
     //Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
     glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    float cameraYaw = -90.0f;
-    float cameraPitch = 0.0f;
+    float cameraYaw = -100.0f;
+    float cameraPitch = -10.0f;
     glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
     glm::vec3 front;
     front.x = cos(glm::radians(cameraYaw)) * cos(glm::radians(cameraPitch));
