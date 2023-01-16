@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <shader.hpp>
 
 //#include <learnopengl/filesystem.h>
 //#include <learnopengl/shader.h>
@@ -17,7 +18,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
-unsigned int compileShaders(const char *vs, const char *fs);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -31,69 +31,30 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-const char vertex_source[] =
-"#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"\n"
-"uniform mat4 model;\n"
-"uniform mat4 view;\n"
-"uniform mat4 projection;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
-"}\n";
+const std::string vertex_source = R"(
+        #version 330 core
+        layout (location = 0) in vec3 aPos;
 
-const char fragment_source[] =
-"#version 330 core\n"
-"        out vec4 FragColor;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(0.0, 1.0, 0.0, 1.0);\n"
-"}\n";
+        uniform mat4 model;
+        uniform mat4 view;
+        uniform mat4 projection;
 
+        void main()
+        {
+            gl_Position = projection * view * model * vec4(aPos, 1.0);
+        };
+)";
 
-unsigned int compileShaders(const char *vs, const char *fs)
-{
-    GLuint program;
-    GLint vsOk, fsOk, linkedOk;
+const std::string fragment_source = R"(
+        #version 330 core
+                out vec4 FragColor;
 
-    GLint v = glCreateShader(GL_VERTEX_SHADER);
-    GLint f = glCreateShader(GL_FRAGMENT_SHADER);
+        void main()
+        {
+            FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+        };
+)";
 
-    glShaderSource(v, 1, &vs, NULL);
-    glShaderSource(f, 1, &fs, NULL);
-
-    glCompileShader(v);
-    glGetShaderiv(v, GL_COMPILE_STATUS, &vsOk);
-    if (vsOk != GL_TRUE) {
-        std::cout << "Error occurred vs compile\n";
-        exit(1);
-    }
-
-    glCompileShader(f);
-    glGetShaderiv(f, GL_COMPILE_STATUS, &fsOk);
-    if (fsOk != GL_TRUE) {
-        std::cout << "Error occurred fs compile\n";
-        exit(2);
-    }
-
-    program = glCreateProgram();
-
-    glAttachShader(program, v);
-    glAttachShader(program, f);
-
-    glLinkProgram(program);
-    glGetProgramiv(program, GL_LINK_STATUS, &linkedOk);
-
-    if (linkedOk != GL_TRUE) {
-        std::cout << "Error occurred at link-time\n";
-        exit(3);
-    }
-
-    return program;
-}
 
 int main()
 {
@@ -103,6 +64,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     // glfw window creation
     // --------------------
@@ -130,7 +92,9 @@ int main()
     // -------------------------
 //    Shader shader("11.1.anti_aliasing.vs", "11.1.anti_aliasing.fs");
 
-    GLuint program = compileShaders(vertex_source, fragment_source);
+    Program<Shaders<GL_VERTEX_SHADER>, Shaders<GL_FRAGMENT_SHADER>> program(
+        vertex_source, fragment_source
+    );
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -223,7 +187,6 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // set transformation matrices		
-        glUseProgram(program);
         glm::mat4 projection = glm::perspective(glm::radians(45.0f),
                                                 (float)SCR_WIDTH / (float)SCR_HEIGHT,
                                                 0.1f,
@@ -231,10 +194,11 @@ int main()
         glm::mat4 view = glm::lookAt(cameraPosition,
                                     cameraPosition + cameraFront,
                                     cameraUp);
-        glm::mat4 model = glm::mat4(1.0f);
-        glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, &projection[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, &view[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, &model[0][0]);
+
+        program.use();
+        program.uniform("projection", projection);
+        program.uniform("view", view);
+        program.uniform("model", glm::mat4(1.0f));
 
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
