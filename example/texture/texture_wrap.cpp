@@ -1,6 +1,8 @@
 #include <GLFW/glfw3.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#include "application.hpp"
 #include "shader.hpp"
 
 #include <iostream>
@@ -45,8 +47,10 @@ const std::string fs = R"(
     }
 )";
 
-int main()
+int main(int argc, char **argv)
 {
+    trif::Application app("texture_wrap", argc, argv);
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -154,10 +158,13 @@ int main()
     }
     stbi_image_free(data);
 
+    trif::Config conf = app.getConfig();
+
+    uint32_t frames = conf.n_frames;
 
     // render loop
     // -----------
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window) && frames)
     {
         // input
         // -----
@@ -180,6 +187,9 @@ int main()
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        if (!conf.forever)
+            frames--;
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:

@@ -5,7 +5,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <shader.hpp>
+
+#include "application.hpp"
+#include "shader.hpp"
 
 //#include <learnopengl/filesystem.h>
 //#include <learnopengl/shader.h>
@@ -56,8 +58,10 @@ const std::string fragment_source = R"(
 )";
 
 
-int main()
+int main(int argc, char **argv)
 {
+    trif::Application app("msaa", argc, argv);
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -164,9 +168,12 @@ int main()
     glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
     glm::vec3 cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
 
+    trif::Config conf = app.getConfig();
+    uint32_t frames = conf.n_frames;
+
     // render loop
     // -----------
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window) && frames)
     {
         // per-frame time logic
         // --------------------
@@ -205,6 +212,9 @@ int main()
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        if (!conf.forever)
+            frames--;
     }
 
     glfwTerminate();
