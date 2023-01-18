@@ -46,8 +46,9 @@ public:
         return true;
     }
 
-    auto &getParser() const {
-        return parser;
+    template <typename Type>
+    auto get_option_value(Option *option) const {
+        return parser->as<Type>(option);
     }
 
     auto &getConfig() const {

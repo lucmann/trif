@@ -51,6 +51,16 @@ int main(int argc, char **argv)
 {
     trif::Application app("texture_wrap", argc, argv);
 
+    trif::Option generate_mipmap = {
+        "--mipmap,!--no-mipmap",
+        "Whether to generate MIPMAP or not",
+        trif::OptionType::FlagOnly
+    };
+
+    app.init({&generate_mipmap});
+
+    bool has_mipmap = app.get_option_value<bool>(&generate_mipmap);
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -150,7 +160,8 @@ int main(int argc, char **argv)
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        if (has_mipmap)
+            glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
     {

@@ -14,11 +14,18 @@
 namespace trif
 {
 
+enum class OptionType {
+    FlagOnly,
+    OneValue,
+    MultiVal,
+};
+
 class Option {
 public:
-    Option(const std::string &name, const std::string &help_line)
-        :_name(name)
-        ,_help_line(help_line) {
+    Option(const std::string &name, const std::string &help_line, OptionType type = OptionType::OneValue)
+        : _name(name)
+        , _help_line(help_line)
+        , _type(type) {
 
     }
 
@@ -42,9 +49,15 @@ public:
     void set_help_line(const std::string &help_line) {
         _help_line = help_line;
     }
+
+    OptionType get_option_type() const {
+        return _type;
+    }
+
 private:
     std::string _name;
     std::string _help_line;
+    OptionType  _type;
 };
 
 
@@ -77,7 +90,15 @@ public:
     bool parse(const std::vector<Option *> &options) {
         CLI::Option *co;
         for (auto *option : options) {
-            co = _cli11->add_option(option->get_name(), option->get_help_line());
+            switch (option->get_option_type()) {
+                case OptionType::FlagOnly:
+                    co = _cli11->add_flag(option->get_name(), option->get_help_line());
+                    break;
+                case OptionType::OneValue:
+                case OptionType::MultiVal:
+                    co = _cli11->add_option(option->get_name(), option->get_help_line());
+            }
+
             _options.emplace(option, co);
         }
 
@@ -139,6 +160,8 @@ private:
 // specialization
 template <>
 inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, int *out) const {
+    for (auto v : values)
+        std::cout << v << '\n';
     if (values.size() != 1) {
         *out = 0;
     } else {
@@ -156,6 +179,19 @@ inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, ui
         auto val = std::stoi(values[0]);
         *out = static_cast<uint32_t>(val);
     }
+
+    return true;
+}
+
+// Used to convert flag options which result will be true (string) or contain a value of 1. For the latter
+// client must add flag with additional default values. e.g.
+// app.add_flag("--flag{1},!--no-flag{0}", result, "help for flag");
+template <>
+inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, bool *out) const {
+    if (values.size() != 1)
+        *out = false;
+    else
+        *out = values[0].compare("true") == 0 ? true : false;
 
     return true;
 }
