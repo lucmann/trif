@@ -39,7 +39,9 @@ public:
             if (parser->contains(&n_frames)) {
                 default_config.n_frames = parser->as<uint32_t>(&n_frames);
                 default_config.forever = false;
-            } else if (parser->contains(&geometry)) {
+            }
+
+            if (parser->contains(&geometry)) {
                 default_config.window_size = parser->as<std::pair<uint32_t, uint32_t>>(&geometry);
             }
         }
