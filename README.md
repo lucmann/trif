@@ -28,7 +28,10 @@ int main(int argc, char **argv) {
 
     trif::Application app("msaa", argc, argv, {&generate_mipmap});
 
+    trif::Config conf = app.getConfig();
+
     bool has_mipmap = app.get_option_value<bool>(&generate_mipmap);
+    uint32_t frames = conf.n_frames;    // default value is 1
 
     ...
 
@@ -41,9 +44,6 @@ int main(int argc, char **argv) {
     if (has_mipmap) {
         ...
     }
-
-    trif::Config conf = app.getConfig();
-    uint32_t frames = conf.n_frames;    // default value is 1
 
     while (!glfwWindowShouldClose(window) && frames) {
 

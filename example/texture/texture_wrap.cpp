@@ -10,10 +10,6 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-
 const std::string vs = R"(
     #version 330 core
     layout (location = 0) in vec3 aPos;
@@ -57,6 +53,8 @@ int main(int argc, char **argv)
 
     trif::Application app("texture_wrap", argc, argv, {&generate_mipmap});
 
+    trif::Config conf = app.getConfig();
+
     bool has_mipmap = app.get_option_value<bool>(&generate_mipmap);
 
     // glfw: initialize and configure
@@ -72,7 +70,7 @@ int main(int argc, char **argv)
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(conf.window_size.first, conf.window_size.second, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -166,8 +164,6 @@ int main(int argc, char **argv)
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
-
-    trif::Config conf = app.getConfig();
 
     uint32_t frames = conf.n_frames;
 

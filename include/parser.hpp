@@ -17,7 +17,7 @@ namespace trif
 enum class OptionType {
     FlagOnly,
     OneValue,
-    MultiVal,
+    Pair,
 };
 
 class Option {
@@ -95,8 +95,13 @@ public:
                     co = _cli11->add_flag(option->get_name(), option->get_help_line());
                     break;
                 case OptionType::OneValue:
-                case OptionType::MultiVal:
                     co = _cli11->add_option(option->get_name(), option->get_help_line());
+                    break;
+                case OptionType::Pair:
+                    co = _cli11->add_option(option->get_name(), option->get_help_line())
+                            ->delimiter('x')
+                            ->expected(2);
+                    break;
             }
 
             _options.emplace(option, co);
@@ -192,6 +197,21 @@ inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, bo
         *out = true;    // return true if the flag is not passed on the command line
     else
         *out = values[0].compare("true") == 0 ? true : false;
+
+    return true;
+}
+
+// set window size
+// for instance --geometry 300x300
+template <>
+inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, std::pair<uint32_t, uint32_t> *out) const {
+    if (values.size() != 2) {
+        out->first = 800;
+        out->second = 600;
+    } else {
+        out->first = static_cast<uint32_t>(std::stoi(values[0]));
+        out->second = static_cast<uint32_t>(std::stoi(values[1]));
+    }
 
     return true;
 }

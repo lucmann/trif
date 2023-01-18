@@ -4,15 +4,18 @@
 
 #pragma once
 
+#include <utility>
 #include "parser.hpp"
 
 namespace trif
 {
-Option n_frames = {"-n,--num-frames", "Draw the given number of frames then exit"};
+Option n_frames = {"-n,--num-frames",   "Draw the given number of frames then exit"};
+Option geometry = {"-g,--geometry",     "Specify the size of window (default 800x600)", OptionType::Pair};
 
 struct Config {
     uint32_t n_frames;
     bool forever;
+    std::pair<uint32_t, uint32_t> window_size;
     // TODO: add some config if needed
 };
 
@@ -36,6 +39,8 @@ public:
             if (parser->contains(&n_frames)) {
                 default_config.n_frames = parser->as<uint32_t>(&n_frames);
                 default_config.forever = false;
+            } else if (parser->contains(&geometry)) {
+                default_config.window_size = parser->as<std::pair<uint32_t, uint32_t>>(&geometry);
             }
         }
     }
@@ -52,7 +57,7 @@ public:
 private:
     std::vector<std::string>        arguments;
     std::unique_ptr<CLI11Parser>    parser;
-    std::vector<Option *>           options = {&n_frames};
-    Config                          default_config{1, true};
+    std::vector<Option *>           options = {&n_frames, &geometry};
+    Config                          default_config{1, true, std::make_pair(800, 600)};
 };
 }
