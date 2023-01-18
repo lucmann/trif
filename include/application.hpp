@@ -19,16 +19,18 @@ struct Config {
 class Application {
 public:
     // Allow client to customize other options
-    Application(const std::string &name, int argc, char **argv) {
+    Application(const std::string &name, int argc, char **argv, const std::vector<Option *> &custom_options = {}) {
         // use argv pointer array to initialize arguments vector
         arguments = {argv, argv + argc };
+        // append user-defined options to the default
+        options.insert(options.end(), custom_options.begin(), custom_options.end());
 
         parser = std::make_unique<CLI11Parser>(
                 name,
                 "\nDemo based on tri framework to demonstrate the 3D graphics app best practice.\n",
                 arguments);
 
-        if (!parser->parse(default_options)) {
+        if (!parser->parse(options)) {
             // TODO:
         } else {
             if (parser->contains(&n_frames)) {
@@ -36,14 +38,6 @@ public:
                 default_config.forever = false;
             }
         }
-    }
-
-    bool init(const std::vector<Option *> &custom_options = {}) {
-        if (!parser->parse(custom_options)) {
-            return false;
-        }
-
-        return true;
     }
 
     template <typename Type>
@@ -58,7 +52,7 @@ public:
 private:
     std::vector<std::string>        arguments;
     std::unique_ptr<CLI11Parser>    parser;
-    const std::vector<Option *>     default_options = {&n_frames};
+    std::vector<Option *>           options = {&n_frames};
     Config                          default_config{1, true};
 };
 }

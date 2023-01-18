@@ -189,7 +189,7 @@ inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, ui
 template <>
 inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, bool *out) const {
     if (values.size() != 1)
-        *out = false;
+        *out = true;    // return true if the flag is not passed on the command line
     else
         *out = values[0].compare("true") == 0 ? true : false;
 

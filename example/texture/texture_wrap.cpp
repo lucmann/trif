@@ -49,15 +49,13 @@ const std::string fs = R"(
 
 int main(int argc, char **argv)
 {
-    trif::Application app("texture_wrap", argc, argv);
-
     trif::Option generate_mipmap = {
         "--mipmap,!--no-mipmap",
         "Whether to generate MIPMAP or not",
         trif::OptionType::FlagOnly
     };
 
-    app.init({&generate_mipmap});
+    trif::Application app("texture_wrap", argc, argv, {&generate_mipmap});
 
     bool has_mipmap = app.get_option_value<bool>(&generate_mipmap);
 
