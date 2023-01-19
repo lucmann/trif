@@ -61,6 +61,10 @@ const std::string fragment_source = R"(
 int main(int argc, char **argv)
 {
     trif::Application app("msaa", argc, argv);
+    trif::Config config = app.getConfig();
+
+    const uint32_t win_w = config.window_size.first;
+    const uint32_t win_h = config.window_size.second;
 
     // glfw: initialize and configure
     // ------------------------------
@@ -72,7 +76,7 @@ int main(int argc, char **argv)
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(win_w, win_h, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -192,7 +196,7 @@ int main(int argc, char **argv)
 
         // set transformation matrices		
         glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-                                                (float)SCR_WIDTH / (float)SCR_HEIGHT,
+                                                (float)win_w / (float)win_h,
                                                 0.1f,
                                                 1000.0f);
         glm::mat4 view = glm::lookAt(cameraPosition,
