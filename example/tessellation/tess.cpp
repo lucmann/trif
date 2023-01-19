@@ -116,6 +116,8 @@ int main(int argc, char **argv)
     trif::Config config = app.getConfig();
 
     uint32_t frames = config.n_frames;
+    float ol = app.get_option_value<float>(&outer_level, 8.0f);
+    float il = app.get_option_value<float>(&inner_level, 8.0f);
 
     // glfw: initialize and configure
     // ------------------------------
@@ -259,9 +261,6 @@ int main(int argc, char **argv)
         glm::mat4 view = glm::lookAt(cameraPosition,
                                      cameraPosition + cameraFront,
                                      cameraUp);
-
-        float ol = app.get_option_value<float>(&outer_level, 8.0f);
-        float il = app.get_option_value<float>(&inner_level, 8.0f);
 
         program.use();
         program.uniform("outer_level", ol);
