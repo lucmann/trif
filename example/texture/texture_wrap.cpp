@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 
     trif::Config conf = app.getConfig();
 
-    bool has_mipmap = app.get_option_value<bool>(&generate_mipmap, false);
+    bool has_mipmap = app.get_option_value<bool>(&generate_mipmap, true);
 
     // glfw: initialize and configure
     // ------------------------------
