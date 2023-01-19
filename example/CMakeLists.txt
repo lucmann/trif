@@ -24,4 +24,5 @@ endmacro(example)
 
 example(msaa msaa)
 example(texture_wrap texture)
+example(tess tessellation)
 # Add new example from here
