@@ -44,7 +44,7 @@ const std::string vertex_source = R"(
         void main()
         {
             gl_Position = projection * view * model * vec4(aPos, 1.0);
-        };
+        }
 )";
 
 const std::string fragment_source = R"(
@@ -54,7 +54,7 @@ const std::string fragment_source = R"(
         void main()
         {
             FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-        };
+        }
 )";
 
 
