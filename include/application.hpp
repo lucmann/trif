@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include <utility>
 #include "parser.hpp"
+#include "shader.hpp"
+
 
 namespace trif
 {

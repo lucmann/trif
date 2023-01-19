@@ -1,14 +1,12 @@
 #pragma once
 
+#include <algorithm> // for std::transform
+#include <array>
+#include <fstream>
+#include <vector>
+
 #include <GL/gl.h>
 #include <glm/glm.hpp>
-#include <algorithm>
-#include <array>
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
 
 
 static inline std::string shader_source_from_string_or_file(const std::string& s)

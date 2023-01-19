@@ -3,9 +3,7 @@
 #include <stb_image.h>
 
 #include "application.hpp"
-#include "shader.hpp"
 
-#include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
