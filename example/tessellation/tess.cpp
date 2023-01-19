@@ -69,7 +69,7 @@ void main() {
 const std::string tes = R"(
 #version 400 core
 
-layout (quads, fractional_odd_spacing, ccw) in;
+layout (isolines, fractional_odd_spacing, ccw) in;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -142,7 +142,8 @@ int main(int argc, char **argv)
 
     // configure global opengl state
     // -----------------------------
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // Some implementation does not support PolygonMode setting
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // build and compile shaders
     // -------------------------
