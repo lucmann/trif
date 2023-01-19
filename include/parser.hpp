@@ -164,9 +164,18 @@ private:
 
 // specialization
 template <>
+inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, float *out) const {
+    if (values.size() != 1) {
+        *out = 0.0f;
+    } else {
+        *out = std::stof(values[0]);
+    }
+
+    return true;
+}
+
+template <>
 inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, int *out) const {
-    for (auto v : values)
-        std::cout << v << '\n';
     if (values.size() != 1) {
         *out = 0;
     } else {
@@ -194,7 +203,7 @@ inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, ui
 template <>
 inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, bool *out) const {
     if (values.size() != 1)
-        *out = true;    // return true if the flag is not passed on the command line
+        *out = false;    // if not specified on the command line, keep it disabled anyway
     else
         *out = values[0].compare("true") == 0 ? true : false;
 

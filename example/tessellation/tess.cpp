@@ -46,19 +46,22 @@ const std::string tcs = R"(
 
 layout (vertices = 4) out;
 
+uniform float outer_level;
+uniform float inner_level;
+
 void main() {
     // pass attributes through
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 
     // invocation 0 controls tessellation levels for the entire patch
     if (gl_InvocationID == 0) {
-        gl_TessLevelOuter[0] = 6.0f;
-        gl_TessLevelOuter[1] = 6.0f;
-        gl_TessLevelOuter[2] = 6.0f;
-        gl_TessLevelOuter[3] = 6.0f;
+        gl_TessLevelOuter[0] = outer_level;
+        gl_TessLevelOuter[1] = outer_level;
+        gl_TessLevelOuter[2] = outer_level;
+        gl_TessLevelOuter[3] = outer_level;
 
-        gl_TessLevelInner[0] = 6.0f;
-        gl_TessLevelInner[1] = 6.0f;
+        gl_TessLevelInner[0] = inner_level;
+        gl_TessLevelInner[1] = inner_level;
     }
 }
 )";
@@ -83,7 +86,7 @@ void main() {
     vec4 p10 = gl_in[2].gl_Position;
     vec4 p11 = gl_in[3].gl_Position;
 
-    // bilinear interpolation position across patches
+    // bi-linearly interpolate position across patches
     vec4 p0 = (p01 - p00) * u + p00;
     vec4 p1 = (p11 - p10) * u + p10;
 
@@ -106,7 +109,10 @@ void main()
 
 int main(int argc, char **argv)
 {
-    trif::Application app("tess", argc, argv);
+    trif::Option outer_level = {"-o,--outer-level", "Set all outer tessellation levels of the current patch"};
+    trif::Option inner_level = {"-i,--inner-level", "Set all inner tessellation levels of the current patch"};
+
+    trif::Application app("tess", argc, argv, {&outer_level, &inner_level});
     trif::Config config = app.getConfig();
 
     uint32_t frames = config.n_frames;
@@ -253,7 +259,12 @@ int main(int argc, char **argv)
                                      cameraPosition + cameraFront,
                                      cameraUp);
 
+        float ol = app.get_option_value<float>(&outer_level, 8.0f);
+        float il = app.get_option_value<float>(&inner_level, 8.0f);
+
         program.use();
+        program.uniform("outer_level", ol);
+        program.uniform("inner_level", il);
         program.uniform("projection", projection);
         program.uniform("view", view);
         program.uniform("model", glm::mat4(1.0f));

@@ -48,8 +48,11 @@ public:
     }
 
     template <typename Type>
-    auto get_option_value(Option *option) const {
-        return parser->as<Type>(option);
+    auto get_option_value(Option *option, const Type dv) const {
+        if (parser->contains(option))
+            return parser->as<Type>(option);
+
+        return dv;
     }
 
     auto &getConfig() const {
