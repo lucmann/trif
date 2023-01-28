@@ -4,7 +4,7 @@ An OpenGL simple triangle demos framework
 
 # Why is trif simple
 
-- [Simple#0] Each demo written under **trif** framework is built from a corresponding cpp source file in general.
+- [Simple#0] Each demo written under **trif** framework corresponds to an individual cpp source file in general.
 - [Simple#1] Efforts are taken to make **trif** be a header-only cpp framework
 - [Simple#2] Third-party libraries used by **trif** are also header-only as much as possible
 
@@ -14,8 +14,8 @@ You may write `main` function as following
 
 ```c++
 ...
+#include <GLFW/glfw3.h>
 #include "application.hpp"
-#include "shader.hpp"
 ...
 
 int main(int argc, char **argv) {
