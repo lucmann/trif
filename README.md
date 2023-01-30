@@ -35,7 +35,10 @@ int main(int argc, char **argv) {
 
     ...
 
-    Program<Shaders<GL_VERTEX_SHADER>, Shaders<GL_FRAGMENT_SHADER>> program(
+    trif::Program<
+        trif::Shaders<GL_VERTEX_SHADER>,
+        trif::Shaders<GL_FRAGMENT_SHADER>
+    > program(
         vertex_source, fragment_source
     );
 

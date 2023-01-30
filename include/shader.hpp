@@ -8,6 +8,8 @@
 #include <GL/gl.h>
 #include <glm/glm.hpp>
 
+namespace trif
+{
 
 static inline std::string shader_source_from_string_or_file(const std::string& s)
 {
@@ -20,6 +22,68 @@ static inline std::string shader_source_from_string_or_file(const std::string& s
 
     return std::string((std::istreambuf_iterator<char>(maybe_file)),
                   std::istreambuf_iterator<char>());
+}
+
+
+/// shader source template
+///
+/// provides another way to parameterize the shader program at runtime
+/// besides uniform variables.
+class ShaderSourceTemplate {
+public:
+    using ParamsType = std::map<std::string, std::string>;
+
+public:
+    ShaderSourceTemplate() = default;
+    ShaderSourceTemplate(const std::string& str) { set_template(str); }
+    ~ShaderSourceTemplate() = default;
+
+    /// not allowed
+    ShaderSourceTemplate(const ShaderSourceTemplate&) = delete;
+    ShaderSourceTemplate& operator=(const ShaderSourceTemplate&) = delete;
+
+    void set_template(const std::string& str) { _tmpl = str; }
+    std::string specialize(const ParamsType& params) const;
+
+private:
+    std::string _tmpl;
+};
+
+std::string ShaderSourceTemplate::specialize(const ParamsType &params) const {
+    std::ostringstream res;
+    size_t cur_pos = 0;
+
+    for (;;) {
+        size_t param_start = _tmpl.find("${", cur_pos);
+        /// Contains parameters in the source template
+        if (param_start != std::string::npos) {
+            res << _tmpl.substr(cur_pos, param_start - cur_pos);
+
+            size_t param_end = _tmpl.find("}", param_start);
+            if (param_end == std::string::npos)
+                assert(0 && "Missing '}' in the shader source template parameter");
+
+            /// Fill in parameter value
+            std::string param_name = _tmpl.substr(param_start + 2, param_end - (2 + param_start));
+
+            auto iter = params.find(param_name);
+            if (iter != params.end())
+                res << (*iter).second;
+
+            /// Scan forward
+            cur_pos = param_end + 1;
+        } else {
+            if (cur_pos < _tmpl.length())
+                res << &_tmpl[cur_pos];
+
+            break;
+        }
+    }
+
+    /// TODO: add debug flags
+    std::cout << res.str() << '\n';
+
+    return res.str();
 }
 
 
@@ -161,3 +225,5 @@ protected:
 template<int... T>
 class Program<Shaders<T>...> {
 };
+
+}

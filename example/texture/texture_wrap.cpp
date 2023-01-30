@@ -81,7 +81,10 @@ int main(int argc, char **argv)
     // build and compile our shader zprogram
     // ------------------------------------
 //    Shader ourShader("4.1.texture.vs", "4.1.texture.fs");
-    Program<Shaders<GL_VERTEX_SHADER>, Shaders<GL_FRAGMENT_SHADER>> program(vs, fs);
+    trif::Program<
+        trif::Shaders<GL_VERTEX_SHADER>,
+        trif::Shaders<GL_FRAGMENT_SHADER>
+    > program(vs, fs);
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------

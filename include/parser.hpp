@@ -223,5 +223,15 @@ inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, st
     return true;
 }
 
+template <>
+inline bool CLI11Parser::convert_type(const std::vector<std::string> &values, std::string *out) const {
+    if (values.size() > 0)
+        *out = values[0];
+    else
+        *out = "";
+
+    return true;
+}
+
 // TODO: add other types as you'd like
 }

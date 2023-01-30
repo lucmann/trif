@@ -35,7 +35,7 @@ void main() {
 const std::string tcs = R"(
 #version 400 core
 
-layout (vertices = 4) out;
+layout (vertices = ${OUTPUT_PATCH_VERTICES}) out;
 
 uniform float outer_level;
 uniform float inner_level;
@@ -102,8 +102,9 @@ int main(int argc, char **argv)
 {
     trif::Option outer_level = {"-o,--outer-level", "Set all outer tessellation levels of the current patch"};
     trif::Option inner_level = {"-i,--inner-level", "Set all inner tessellation levels of the current patch"};
+    trif::Option output_patch_vertices = { "-v, --patch-vertices", "Set output patch vertices count ([1, 32])"};
 
-    trif::Application app("tess", argc, argv, {&outer_level, &inner_level});
+    trif::Application app("tess", argc, argv, {&outer_level, &inner_level, &output_patch_vertices});
     trif::Config config = app.getConfig();
 
     const uint32_t win_w = config.window_size.first;
@@ -112,6 +113,7 @@ int main(int argc, char **argv)
     uint32_t frames = config.n_frames;
     float ol = app.get_option_value<float>(&outer_level, 8.0f);
     float il = app.get_option_value<float>(&inner_level, 8.0f);
+    std::string patch_vertices = app.get_option_value<std::string>(&output_patch_vertices, "4");
 
     // glfw: initialize and configure
     // ------------------------------
@@ -143,14 +145,18 @@ int main(int argc, char **argv)
     // -------------------------
 //    Shader shader("11.1.anti_aliasing.vs", "11.1.anti_aliasing.fs");
 
-    Program<
-        Shaders<GL_VERTEX_SHADER>,
-        Shaders<GL_TESS_CONTROL_SHADER>,
-        Shaders<GL_TESS_EVALUATION_SHADER>,
-        Shaders<GL_FRAGMENT_SHADER>
+    /// Preprocess TCS
+    trif::ShaderSourceTemplate::ParamsType tcs_params;
+    tcs_params["OUTPUT_PATCH_VERTICES"] = patch_vertices;
+
+    trif::Program<
+        trif::Shaders<GL_VERTEX_SHADER>,
+        trif::Shaders<GL_TESS_CONTROL_SHADER>,
+        trif::Shaders<GL_TESS_EVALUATION_SHADER>,
+        trif::Shaders<GL_FRAGMENT_SHADER>
     > program(
         vertex_source,
-        tcs,
+        trif::ShaderSourceTemplate(tcs).specialize(tcs_params),
         tes,
         fragment_source
     );
