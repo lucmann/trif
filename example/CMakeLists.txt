@@ -12,7 +12,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../bin)
 
 add_compile_definitions(ASSETS_DIR=\"${CMAKE_SOURCE_DIR}/assets/\")
 
-macro(example APP DIR)
+macro(example DIR APP)
   # Allow to multiple examples in one directory but note that the corresponding
   # source files must prefix with APP so that CMake can match them exclusively
   file(GLOB ${APP}_SRC
@@ -28,6 +28,7 @@ macro(example APP DIR)
 endmacro(example)
 
 example(msaa msaa)
-example(texture_wrap texture)
-example(tess tessellation)
+example(texture texture_wrap)
+example(tessellation tess)
+example(triangle triangle)
 # Add new example from here

@@ -11,7 +11,7 @@
 namespace trif
 {
 Option n_frames = {"-n,--num-frames",   "Draw the given number of frames then exit"};
-Option geometry = {"-g,--geometry",     "Specify the size of window (default 800x600)", OptionType::Pair};
+Option geometry = {"-g,--geometry",     "Specify the size of window as WxH (default 800x600)", OptionType::Pair};
 
 struct Config {
     uint32_t n_frames;
@@ -31,7 +31,7 @@ public:
 
         parser = std::make_unique<CLI11Parser>(
                 name,
-                "\nDemo based on tri framework to demonstrate the 3D graphics app best practice.\n",
+                "\nDemo based on triangle framework to demonstrate the 3D graphics app best practice.\n",
                 arguments);
 
         if (!parser->parse(options)) {

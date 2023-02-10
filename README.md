@@ -71,7 +71,7 @@ directory for your new demo(s) under the directory `example`. Then
 - insert the following line to `example/CMakeLists.txt`
 
 ```cmake
-example(DEMO_NAME DIR_NAME)
+example(DIR_NAME DEMO_NAME)
 ```
 
 NOTE: Since `file(GLOB)` is used in the CMakeLists.txt, `cmake -B build` must be
