@@ -81,7 +81,7 @@ std::string ShaderSourceTemplate::specialize(const ParamsType &params) const {
     }
 
     /// TODO: add debug flags
-    std::cout << res.str() << '\n';
+    /// std::cout << res.str() << '\n';
 
     return res.str();
 }
