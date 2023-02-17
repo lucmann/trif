@@ -208,6 +208,10 @@ public:
         glUniform1f(uniform(name), value);
     }
 
+    void uniform(const std::string &name, const glm::vec4 &value) {
+        glUniform4fv(uniform(name), 1, &value[0]);
+    }
+
     void uniform(const std::string &name, const int value) {
         glUniform1i(uniform(name), value);
     }

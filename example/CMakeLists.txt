@@ -27,6 +27,7 @@ macro(example DIR APP)
   target_link_libraries(${APP} PRIVATE glfw GL)
 endmacro(example)
 
+example(gears glxgears)
 example(msaa msaa)
 example(texture texture_wrap)
 example(tessellation tess)
