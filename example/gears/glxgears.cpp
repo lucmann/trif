@@ -44,17 +44,32 @@ static glm::mat4 ProjectionMatrix;
 /// The direction of the directional light for the scene
 static const glm::vec4 LightSourcePosition = {5.0, 5.0, 10.0, 1.0};
 
-typedef enum {
-    GEAR_RED = 1,
-    GEAR_GREEN = 2,
-    GEAR_BLUE = 4,
-    GEAR_ALL = 7,
-} gear_mask;
 
-static gear_mask gear_filter = GEAR_ALL;
-static GLboolean fullscreen = GL_FALSE; // Create a single fullscreen window
-static GLboolean bmp = GL_FALSE;        // Enable stereo.
-static GLint samples = 0;               // Choose visual with at least N samples.
+enum GearMask {
+    GEAR_NONE  = 0,
+    GEAR_RED   = 1 << 0,
+    GEAR_GREEN = 1 << 1,
+    GEAR_BLUE  = 1 << 2,
+    GEAR_ALL   = GEAR_RED | GEAR_GREEN | GEAR_BLUE
+};
+
+inline GearMask operator |(const GearMask& lhs, const GearMask& rhs)
+{
+    return static_cast<GearMask>(static_cast<int>(lhs) | static_cast<int>(rhs));
+}
+
+inline GearMask operator &(const GearMask& lhs, const GearMask& rhs)
+{
+    return static_cast<GearMask>(static_cast<int>(lhs) & static_cast<int>(rhs));
+}
+
+inline GearMask& operator |=(GearMask& lhs, const GearMask& rhs) {
+    return lhs = lhs | rhs;
+}
+
+static GearMask gears_filter = GEAR_NONE;
+
+
 static GLboolean animate = GL_TRUE;     // Animation
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -392,11 +407,11 @@ static void draw_gears(ProgramType &program) {
     transform = glm::rotate(transform, glm::radians(view_rotz), glm::vec3(0.0, 0.0, 1.0));
 
     /// Draw the gears
-    if (GEAR_RED & gear_filter)
+    if (GEAR_RED & gears_filter)
         draw_gear(program, gear1, transform, glm::vec3(-3.0, -2.0, 0.0), angle, red);
-    if (GEAR_GREEN & gear_filter)
+    if (GEAR_GREEN & gears_filter)
         draw_gear(program, gear2, transform, glm::vec3(3.1, -2.0, 0.0), -2 * angle - 9.0, green);
-    if (GEAR_BLUE & gear_filter)
+    if (GEAR_BLUE & gears_filter)
         draw_gear(program, gear3, transform, glm::vec3(-3.1, 4.2, 0.0), -2 * angle - 25.0, blue);
 }
 
@@ -440,13 +455,31 @@ static void draw_frame(GLFWwindow *window, ProgramType &program) {
 
 int main(int argc, char **argv)
 {
-    trif::Application app("glxgears", argc, argv);
+    trif::Option gears_mask = {"-m, --gears-mask", "Mask gears which need to be drawn (default 'all')"};
+
+    trif::Application app("glxgears", argc, argv, {&gears_mask});
+
     trif::Config config = app.getConfig();
 
     const uint32_t win_w = config.window_size.first;
     const uint32_t win_h = config.window_size.second;
     uint32_t frames = config.n_frames;
 
+    std::string gears_mask_str = app.get_option_value<std::string>(&gears_mask, "all");
+
+    /// Set gears_filter as user demands
+    if (gears_mask_str.find("all") != std::string::npos)
+        gears_filter = GEAR_ALL;
+    else {
+        if (gears_mask_str.find("red") != std::string::npos)
+            gears_filter |= GEAR_RED;
+
+        if (gears_mask_str.find("green") != std::string::npos)
+            gears_filter |= GEAR_GREEN;
+
+        if (gears_mask_str.find("blue") != std::string::npos)
+            gears_filter |= GEAR_BLUE;
+    }
 
     // glfw: initialize and configure
     // ------------------------------
