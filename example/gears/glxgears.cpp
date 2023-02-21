@@ -379,10 +379,22 @@ static void draw_gear(ProgramType &program, struct gear *gear,
     glEnableVertexAttribArray(1);
 
     /// Draw the triangle strips that comprise the gear
-    int n;
-    for (n = 0; n < gear->nstrips; n++)
-        glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[n].first,
-                     gear->strips[n].count);
+    int n, s;
+    unsigned vertex_count = 0;
+    for (s = 0; s < 70; s++)
+        vertex_count += gear->strips[s].count;
+
+    glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[0].first, vertex_count);
+
+    vertex_count = 0;
+    for (; s < gear->nstrips; s++)
+        vertex_count += gear->strips[s].count;
+
+    if (vertex_count > 0)
+        glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[70].first, vertex_count);
+
+//    for (n = 0; n < gear->nstrips; n++)
+//        glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[n].first, gear->strips[n].count);
 
     /// Disable the attributes
     glDisableVertexAttribArray(1);
