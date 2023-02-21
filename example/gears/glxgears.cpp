@@ -381,22 +381,15 @@ static void draw_gear(ProgramType &program, struct gear *gear,
 
     /// Draw the triangle strips that comprise the gear
 
-    int n, s;
+    int n;
     unsigned vertex_count = 0;
 
     if (fat_draw) {
         /// curious what if put so many vertices in one draw call
-        for (s = 0; s < 70; s++)
-            vertex_count += gear->strips[s].count;
+        for (n = 0; n < gear->nstrips; n++)
+            vertex_count += gear->strips[n].count;
 
         glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[0].first, vertex_count);
-
-        vertex_count = 0;
-        for (; s < gear->nstrips; s++)
-            vertex_count += gear->strips[s].count;
-
-        if (vertex_count > 0)
-            glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[70].first, vertex_count);
     } else {
         for (n = 0; n < gear->nstrips; n++)
             glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[n].first, gear->strips[n].count);
