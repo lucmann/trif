@@ -71,6 +71,7 @@ static GearMask gears_filter = GEAR_NONE;
 
 
 static GLboolean animate = GL_TRUE;     // Animation
+static bool fat_draw = false;         // true if we put too many vertices in one draw call
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -379,22 +380,27 @@ static void draw_gear(ProgramType &program, struct gear *gear,
     glEnableVertexAttribArray(1);
 
     /// Draw the triangle strips that comprise the gear
+
     int n, s;
     unsigned vertex_count = 0;
-    for (s = 0; s < 70; s++)
-        vertex_count += gear->strips[s].count;
 
-    glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[0].first, vertex_count);
+    if (fat_draw) {
+        /// curious what if put so many vertices in one draw call
+        for (s = 0; s < 70; s++)
+            vertex_count += gear->strips[s].count;
 
-    vertex_count = 0;
-    for (; s < gear->nstrips; s++)
-        vertex_count += gear->strips[s].count;
+        glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[0].first, vertex_count);
 
-    if (vertex_count > 0)
-        glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[70].first, vertex_count);
+        vertex_count = 0;
+        for (; s < gear->nstrips; s++)
+            vertex_count += gear->strips[s].count;
 
-//    for (n = 0; n < gear->nstrips; n++)
-//        glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[n].first, gear->strips[n].count);
+        if (vertex_count > 0)
+            glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[70].first, vertex_count);
+    } else {
+        for (n = 0; n < gear->nstrips; n++)
+            glDrawArrays(GL_TRIANGLE_STRIP, gear->strips[n].first, gear->strips[n].count);
+    }
 
     /// Disable the attributes
     glDisableVertexAttribArray(1);
@@ -468,8 +474,11 @@ static void draw_frame(GLFWwindow *window, ProgramType &program) {
 int main(int argc, char **argv)
 {
     trif::Option gears_mask = {"-m, --gears-mask", "Mask gears which need to be drawn (default 'all')"};
+    trif::Option draw_mode_flag = {"--fat-draw, !--no-fat-draw",
+                             "If put too many vertices in one draw call (default false)",
+                             trif::OptionType::FlagOnly};
 
-    trif::Application app("glxgears", argc, argv, {&gears_mask});
+    trif::Application app("glxgears", argc, argv, {&gears_mask, &draw_mode_flag});
 
     trif::Config config = app.getConfig();
 
@@ -478,6 +487,7 @@ int main(int argc, char **argv)
     uint32_t frames = config.n_frames;
 
     std::string gears_mask_str = app.get_option_value<std::string>(&gears_mask, "all");
+    fat_draw = app.get_option_value<bool>(&draw_mode_flag, false);
 
     /// Set gears_filter as user demands
     if (gears_mask_str.find("all") != std::string::npos)
