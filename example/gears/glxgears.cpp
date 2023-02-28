@@ -72,6 +72,7 @@ static GearMask gears_filter = GEAR_NONE;
 
 static GLboolean animate = GL_TRUE;     // Animation
 static bool fat_draw = false;         // true if we put too many vertices in one draw call
+static bool use_fbo = false;          // true if we are rendering off-screen using fbo
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -447,7 +448,11 @@ static void draw_frame(GLFWwindow *window, ProgramType &program) {
     }
 
     draw_gears(program);
-    glfwSwapBuffers(window);
+
+    if (use_fbo)
+        glFinish();
+    else
+        glfwSwapBuffers(window);
 
     frames++;
 
@@ -470,8 +475,11 @@ int main(int argc, char **argv)
     trif::Option draw_mode_flag = {"--fat-draw, !--no-fat-draw",
                              "If put too many vertices in one draw call (default false)",
                              trif::OptionType::FlagOnly};
+    trif::Option fbo_flag = {"--fbo, !--no-fbo",
+                             "Rendering off-screen using fbo",
+                             trif::OptionType::FlagOnly};
 
-    trif::Application app("glxgears", argc, argv, {&gears_mask, &draw_mode_flag});
+    trif::Application app("glxgears", argc, argv, {&gears_mask, &draw_mode_flag, &fbo_flag});
 
     trif::Config config = app.getConfig();
 
@@ -479,6 +487,7 @@ int main(int argc, char **argv)
     const uint32_t win_h = config.window_size.second;
     uint32_t frames = config.n_frames;
 
+    use_fbo = app.get_option_value<bool>(&fbo_flag, false);
     std::string gears_mask_str = app.get_option_value<std::string>(&gears_mask, "all");
     fat_draw = app.get_option_value<bool>(&draw_mode_flag, false);
 
@@ -505,13 +514,24 @@ int main(int argc, char **argv)
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(win_w, win_h, "Gears (shaders)", NULL, NULL);
+    GLFWwindow *window;
+    if (use_fbo) {
+        // GLFW doesn't support creating contexts without an associated window.
+        // However, contexts with hidden windows can be created with the
+        // GLFW_VISIBLE window hint
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        window = glfwCreateWindow(win_w, win_h, "", NULL, NULL);
+    }
+    else
+        window = glfwCreateWindow(win_w, win_h, "Gears (shaders)", NULL, NULL);
+
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -519,6 +539,26 @@ int main(int argc, char **argv)
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+
+    GLuint color_renderbuffer;
+    GLuint depth_renderbuffer;
+    GLuint fbo;
+
+    if (use_fbo) {
+        glGenRenderbuffers(1, &color_renderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, color_renderbuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, win_w, win_h);
+
+        glGenRenderbuffers(1, &depth_renderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, depth_renderbuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, win_w, win_h);
+
+        // set up fbo
+        glGenFramebuffers(1, &fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color_renderbuffer);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_renderbuffer);
+    }
 
     model_gears();
 
@@ -546,6 +586,15 @@ int main(int argc, char **argv)
         if (!config.forever)
             frames--;
     }
+
+    if (fbo)
+        glDeleteFramebuffers(1, &fbo);
+
+    if (color_renderbuffer)
+        glDeleteRenderbuffers(1, &color_renderbuffer);
+
+    if (depth_renderbuffer)
+        glDeleteRenderbuffers(1, &depth_renderbuffer);
 
     glfwTerminate();
     return 0;
