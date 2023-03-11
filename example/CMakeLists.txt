@@ -33,4 +33,5 @@ example(texture texture_wrap)
 example(tessellation tess)
 example(tessellation tess_gs)
 example(triangle triangle)
+example(triangle tri_gs)
 # Add new example from here
