@@ -34,4 +34,5 @@ example(tessellation tess)
 example(tessellation tess_gs)
 example(triangle triangle)
 example(triangle tri_gs)
+example(indirect checkerboard)
 # Add new example from here
