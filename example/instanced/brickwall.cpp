@@ -31,7 +31,11 @@ static const std::string checkerboard_vs_source = R"(
     void main(void)                                                                 
     {                                                                               
         gl_Position = vec4(aPos + aOffset, 0.0, 1.0);
-        fColor = aColor;
+
+        if (gl_InstanceID == 0)
+            fColor = vec3(1.0f, 1.0f, 0.2f);
+        else
+            fColor = aColor;
     }                                                                               
 )";
 
@@ -97,7 +101,7 @@ int main(int argc, char **argv)
         for (int x = 0; x < cols; ++x) {
             glm::vec2 translation;
             translation.x = x * stride.x;
-            translation.y = y * stride.y;
+            translation.y = y * stride.y * -1.0;
 
             translations[index++] = translation;
         }
@@ -112,23 +116,23 @@ int main(int argc, char **argv)
     static GLfloat quadVertices[] =
     {
         // right-bottom
-        -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
+        -1.0f,  1.0f, 1.0f, 0.0f, 0.0f,
          0.0f,  0.0f, 0.0f, 1.0f, 0.0f,
          0.0f,  0.0f, 0.0f, 0.0f, 1.0f,
 
         // left-top
          0.0f,  0.0f, 0.0f, 0.0f, 1.0f,
          0.0f,  0.0f, 0.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
+        -1.0f,  1.0f, 1.0f, 0.0f, 0.0f,
     };
 
     GLfloat _x = -1.0 + 2.0 / cols;
-    GLfloat _y = -1.0 + 2.0 / rows;
+    GLfloat _y =  1.0 - 2.0 / rows;
 
-    quadVertices[5]  = _x;      quadVertices[6]  = -1.0f;
+    quadVertices[5]  = -1.0f;   quadVertices[6]  = _y;
     quadVertices[10] = _x;      quadVertices[11] = _y;
     quadVertices[15] = _x;      quadVertices[16] = _y;
-    quadVertices[20] = -1.0f;   quadVertices[21]  = _y;
+    quadVertices[20] = _x;      quadVertices[21] = 1.0f;
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -184,7 +188,7 @@ int main(int argc, char **argv)
 
         // render
         // ------
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, cols * rows * 2);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, cols * rows);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
