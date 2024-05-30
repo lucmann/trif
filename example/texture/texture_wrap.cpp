@@ -154,7 +154,7 @@ int main(int argc, char **argv)
     int width, height, nrChannels;
 
     // The uploading image is 3-channeled, so let's force stbi_load() to treat it as 4-channeled
-    unsigned char *data = stbi_load(ASSETS_DIR"rabbit.jpg", &width, &height, &nrChannels, 4);
+    unsigned char *data = stbi_load(ASSETS_DIR"wall.jpg", &width, &height, &nrChannels, 4);
     std::cout << "width height: " << width << "x" << height << ", Channels: " << nrChannels << '\n';
     if (data)
     {
