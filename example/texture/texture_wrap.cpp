@@ -90,10 +90,10 @@ int main(int argc, char **argv)
     // ------------------------------------------------------------------
     float vertices[] = {
         // positions          // colors           // texture coords
-            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   2.0f, -1.0f, // top left
-            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   -1.0f, -1.0f, // top right
-            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   -1.0f, 2.0f, // bottom right
-            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   2.0f, 2.0f, // bottom left
+            -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f,  0.0f, // top left
+             1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f,  0.0f, // top right
+             1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f,  1.0f, // bottom right
+            -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f,  1.0f, // bottom left
         // rotate 180 anti-clockwise (vertex position keeps the same, only rotate texture coordinate
 //            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   -1.0f, 2.0f, // top left
 //            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f, // top right
@@ -138,10 +138,10 @@ int main(int argc, char **argv)
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // CLAMP_TO_BORDER
-    GLfloat borderColor[] = { 0.1f, 0.5f, 0.8f, 0.5f };
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    /* GLfloat borderColor[] = { 0.1f, 0.5f, 0.8f, 0.5f }; */
+    /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); */
+    /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); */
+    /* glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor); */
 
     // CLAMP_TO_EDGE
 //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -153,10 +153,12 @@ int main(int argc, char **argv)
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
 
-    unsigned char *data = stbi_load(ASSETS_DIR"rabbit.jpg", &width, &height, &nrChannels, 0);
+    // The uploading image is 3-channeled, so let's force stbi_load() to treat it as 4-channeled
+    unsigned char *data = stbi_load(ASSETS_DIR"rabbit.jpg", &width, &height, &nrChannels, 4);
+    std::cout << "width height: " << width << "x" << height << ", Channels: " << nrChannels << '\n';
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         if (has_mipmap)
             glGenerateMipmap(GL_TEXTURE_2D);
     }
