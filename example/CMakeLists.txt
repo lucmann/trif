@@ -37,4 +37,6 @@ example(instanced brickwall)
 example(triangle triangle)
 example(triangle tri_gs)
 example(indirect checkerboard)
+example(rtt rtt)
+
 # Add new example from here
