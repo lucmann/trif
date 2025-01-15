@@ -1,21 +1,7 @@
-#include <GLFW/glfw3.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include "application.hpp"
-
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
 
 const char* vertex_shader_source = R"(
 #version 330 core
@@ -38,27 +24,10 @@ void main() {
 }
 )";
 
-int main(int argc, char *argv[]) {
-    trif::Application app("rtt", argc, argv);
+int main(int argc, const char *argv[]) {
+    trif::Application app;
 
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        return -1;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Render to Texture", NULL, NULL);
-    if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    app.init(argc, argv);
 
     trif::Program<
         trif::Shaders<GL_VERTEX_SHADER>,
@@ -125,8 +94,7 @@ int main(int argc, char *argv[]) {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    while (!glfwWindowShouldClose(window)) {
-        processInput(window);
+    app.main_loop([&]() {
 
         // First pass: render to texture
         glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -146,10 +114,7 @@ int main(int argc, char *argv[]) {
 
         glBindTexture(GL_TEXTURE_2D, texture);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
+    });
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
@@ -158,6 +123,5 @@ int main(int argc, char *argv[]) {
     glDeleteRenderbuffers(1, &RBO);
     glDeleteTextures(1, &texture);
 
-    glfwTerminate();
     return 0;
 }

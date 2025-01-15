@@ -4,66 +4,96 @@
 
 #pragma once
 
-#include "parser.hpp"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include "CLI11.hpp"
+
+// #include "parser.hpp"
 #include "shader.hpp"
 
+using namespace CLI;
+
+void processInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and 
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
+}
 
 namespace trif
 {
-Option n_frames = {"-n,--num-frames",   "Draw the given number of frames then exit"};
-Option geometry = {"-g,--geometry",     "Specify the size of window as WxH (default 800x600)", OptionType::Pair};
-
 struct Config {
-    uint32_t n_frames;
-    bool forever;
-    std::pair<uint32_t, uint32_t> window_size;
-    // TODO: add some config if needed
+    int n_frames{-1};
+    std::pair<int, int> window_size{800, 600};
+    // TODO: add other common config as default
 };
 
-class Application {
+class Application : CLI::App {
 public:
     // Allow client to customize other options
-    Application(const std::string &name, int argc, char **argv, const std::vector<Option *> &custom_options = {}) {
-        // use argv pointer array to initialize arguments vector
-        arguments = {argv, argv + argc };
-        // append user-defined options to the default
-        options.insert(options.end(), custom_options.begin(), custom_options.end());
+    Application() : CLI::App("trif") {
+        add_option("-n", configs.n_frames, "Draw the given number of frames then exit");
+        add_option("-g, --geometry", configs.window_size, "Specify the size of window as WxH (default 800x600)");
+    }
 
-        parser = std::make_unique<CLI11Parser>(
-                name,
-                "\nDemo based on triangle framework to demonstrate the 3D graphics app best practice.\n",
-                arguments);
+    ~Application() {
+        glfwTerminate();
+    }
 
-        if (!parser->parse(options)) {
-            // TODO:
-        } else {
-            if (parser->contains(&n_frames)) {
-                default_config.n_frames = parser->as<uint32_t>(&n_frames);
-                default_config.forever = false;
-            }
+    int init(int argc, const char *argv[]) {
+        // Parse the command line arguments
+        CLI11_PARSE(*this, argc, argv);
 
-            if (parser->contains(&geometry)) {
-                default_config.window_size = parser->as<std::pair<uint32_t, uint32_t>>(&geometry);
-            }
+        if (!glfwInit()) {
+            std::cerr << "Failed to initialize GLFW" << std::endl;
+            return -1;
+        }
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        window = glfwCreateWindow(800, 600, "Render to Texture", NULL, NULL);
+        if (!window) {
+            std::cerr << "Failed to create GLFW window" << std::endl;
+            glfwTerminate();
+            return -1;
+        }
+
+        glfwMakeContextCurrent(window);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+        glfwMakeContextCurrent(window);
+        glewExperimental = GL_TRUE;
+        if (glewInit() != GLEW_OK) {
+            std::cerr << "Failed to initialize GLEW" << std::endl;
+            return -1;
+        }
+
+        return 0;
+    }
+
+    void main_loop(std::function<void(void)> render) {
+        while (!glfwWindowShouldClose(window)) {
+            processInput(window);
+
+            render();
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
         }
     }
 
-    template <typename Type>
-    auto get_option_value(Option *option, const Type dv) const {
-        if (parser->contains(option))
-            return parser->as<Type>(option);
-
-        return dv;
-    }
-
-    auto &getConfig() const {
-        return default_config;
-    }
-
 private:
-    std::vector<std::string>        arguments;
-    std::unique_ptr<CLI11Parser>    parser;
-    std::vector<Option *>           options = {&n_frames, &geometry};
-    Config                          default_config{1, true, std::make_pair(800, 600)};
+    // Parsed from default options. Application is resposible for providing variables to bind to
+    // and to use on their own.
+    Config configs;
+    GLFWwindow* window;
 };
 }
