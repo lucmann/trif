@@ -29,6 +29,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 namespace trif
 {
 struct Config {
+    std::string title{"Demo"};
     int n_frames{-1};
     std::pair<int, int> window_size{800, 600};
     // TODO: add other common config as default
@@ -37,9 +38,13 @@ struct Config {
 class Application : CLI::App {
 public:
     // Allow client to customize other options
-    Application() : CLI::App("trif") {
+    Application(const char *title = nullptr) : CLI::App("trif") {
         add_option("-n", config.n_frames, "Draw the given number of frames then exit");
         add_option("-g, --geometry", config.window_size, "Specify the size of window like -g NNN MMM (default 800x600)");
+
+        if (title) {
+            config.title = title;
+        }
     }
 
     ~Application() {
@@ -67,7 +72,7 @@ public:
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         window = glfwCreateWindow(config.window_size.first, config.window_size.second,
-                                  "Render to Texture", NULL, NULL);
+                                  config.title.c_str(), NULL, NULL);
         if (!window) {
             std::cerr << "Failed to create GLFW window" << std::endl;
             glfwTerminate();

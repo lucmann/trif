@@ -25,7 +25,7 @@ void main() {
 )";
 
 int main(int argc, const char *argv[]) {
-    trif::Application app;
+    trif::Application app("Render to Texture Example");
 
     app.init(argc, argv);
 
