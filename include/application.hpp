@@ -101,6 +101,35 @@ public:
         }
     }
 
+    // No SwapBuffers version since an application may want to swap buffers on its own
+    // std::function<> doesn't support default parameter, we have to provide
+    // two versions of main_loop
+    void main_loop(std::function<void(bool)> render) {
+        glViewport(0, 0, config.window_size.first, config.window_size.second);
+
+        while (!glfwWindowShouldClose(window) &&
+                (config.frames < 0 || config.frames--)) {
+            processInput(window);
+
+            // Just make compiler happy
+            render(true);
+
+            glfwPollEvents();
+        }
+    }
+
+    int getWindowWidth() const {
+        return config.window_size.first;
+    }
+
+    int getWindowHeight() const {
+        return config.window_size.second;
+    }
+
+    GLFWwindow* getWindow() const {
+        return window;
+    }
+
 private:
     // Parsed from default options. Application is resposible for providing variables to bind to
     // and to use on their own.

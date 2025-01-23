@@ -1,4 +1,3 @@
-#include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
@@ -73,19 +72,6 @@ static GearMask gears_filter = GEAR_NONE;
 static GLboolean animate = GL_TRUE;     // Animation
 static bool fat_draw = false;         // true if we put too many vertices in one draw call
 static bool use_fbo = false;          // true if we are rendering off-screen using fbo
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
-
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-
-float lastX = (float)SCR_WIDTH / 2.0;
-float lastY = (float)SCR_HEIGHT / 2.0;
-bool firstMouse = true;
 
 const std::string vertex_source = R"(
 #version 330 core
@@ -468,81 +454,29 @@ static void draw_frame(GLFWwindow *window, ProgramType &program) {
     }
 }
 
-
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
-    trif::Option gears_mask = {"-m, --gears-mask", "Mask gears which need to be drawn (default 'all')"};
-    trif::Option draw_mode_flag = {"--fat-draw, !--no-fat-draw",
-                             "If put too many vertices in one draw call (default false)",
-                             trif::OptionType::FlagOnly};
-    trif::Option fbo_flag = {"--fbo, !--no-fbo",
-                             "Rendering off-screen using fbo",
-                             trif::OptionType::FlagOnly};
+    trif::Application app("glxgears");
 
-    trif::Application app("glxgears", argc, argv, {&gears_mask, &draw_mode_flag, &fbo_flag});
+    // app.add_option("-m, --gears-mask", gears_filter, "Mask gears which need to be drawn (default 'all')");
+    // app.add_flag("--fat-draw, !--no-fat-draw", fat_draw, "If put too many vertices in one draw call (default false)");
+    // app.add_flag("--fbo, !--no-fbo", use_fbo, "Rendering off-screen using fbo");
 
-    trif::Config config = app.getConfig();
+    app.init(argc, argv);
 
-    const uint32_t win_w = config.window_size.first;
-    const uint32_t win_h = config.window_size.second;
-    uint32_t frames = config.n_frames;
-
-    use_fbo = app.get_option_value<bool>(&fbo_flag, false);
-    std::string gears_mask_str = app.get_option_value<std::string>(&gears_mask, "all");
-    fat_draw = app.get_option_value<bool>(&draw_mode_flag, false);
+    const uint32_t win_w = app.getWindowWidth();
+    const uint32_t win_h = app.getWindowHeight();
 
     /// Set gears_filter as user demands
-    if (gears_mask_str.find("all") != std::string::npos)
+    if (gears_filter == GEAR_NONE)
         gears_filter = GEAR_ALL;
-    else {
-        if (gears_mask_str.find("red") != std::string::npos)
-            gears_filter |= GEAR_RED;
-
-        if (gears_mask_str.find("green") != std::string::npos)
-            gears_filter |= GEAR_GREEN;
-
-        if (gears_mask_str.find("blue") != std::string::npos)
-            gears_filter |= GEAR_BLUE;
-    }
-
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // glfw window creation
-    // --------------------
-    GLFWwindow *window;
-    if (use_fbo) {
-        // GLFW doesn't support creating contexts without an associated window.
-        // However, contexts with hidden windows can be created with the
-        // GLFW_VISIBLE window hint
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        window = glfwCreateWindow(win_w, win_h, "", NULL, NULL);
-    }
-    else
-        window = glfwCreateWindow(win_w, win_h, "Gears (shaders)", NULL, NULL);
-
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    GLuint color_renderbuffer;
-    GLuint depth_renderbuffer;
-    GLuint fbo;
+    GLuint color_renderbuffer = 0;
+    GLuint depth_renderbuffer = 0;
+    GLuint fbo = 0;
 
     if (use_fbo) {
         glGenRenderbuffers(1, &color_renderbuffer);
@@ -569,23 +503,9 @@ int main(int argc, char **argv)
 
     // render loop
     // -----------
-    while (!glfwWindowShouldClose(window) && frames)
-    {
-        // input
-        // -----
-        processInput(window);
-
-        // render
-        // ------
-        draw_frame(window, program);
-
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        glfwPollEvents();
-
-        if (!config.forever)
-            frames--;
-    }
+    app.main_loop([&](bool) {
+        draw_frame(app.getWindow(), program);
+    });
 
     if (fbo)
         glDeleteFramebuffers(1, &fbo);
@@ -596,53 +516,5 @@ int main(int argc, char **argv)
     if (depth_renderbuffer)
         glDeleteRenderbuffers(1, &depth_renderbuffer);
 
-    glfwTerminate();
     return 0;
-}
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
-
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    ProjectionMatrix = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 1.0f, 1024.0f);
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
-
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
-{
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastX = xpos;
-    lastY = ypos;
-
-//    camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-//    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
