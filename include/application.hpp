@@ -46,13 +46,18 @@ public:
         glfwTerminate();
     }
 
-    int init(int argc, const char *argv[]) {
+    void init(int argc, const char *argv[]) {
         // Parse the command line arguments
-        CLI11_PARSE(*this, argc, argv);
+        try {
+            parse((argc), (argv));
+        } catch(const CLI::ParseError &e) {
+            exit(e);
+            std::exit(1);
+        }
 
         if (!glfwInit()) {
             std::cerr << "Failed to initialize GLFW" << std::endl;
-            return -1;
+            std::exit(2);
         }
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -63,7 +68,7 @@ public:
         if (!window) {
             std::cerr << "Failed to create GLFW window" << std::endl;
             glfwTerminate();
-            return -1;
+            std::exit(2);
         }
 
         glfwMakeContextCurrent(window);
@@ -73,10 +78,8 @@ public:
         glewExperimental = GL_TRUE;
         if (glewInit() != GLEW_OK) {
             std::cerr << "Failed to initialize GLEW" << std::endl;
-            return -1;
+            std::exit(2);
         }
-
-        return 0;
     }
 
     void main_loop(std::function<void(void)> render) {
