@@ -8,10 +8,7 @@
 #include <GLFW/glfw3.h>
 #include "CLI11.hpp"
 
-// #include "parser.hpp"
 #include "shader.hpp"
-
-using namespace CLI;
 
 void processInput(GLFWwindow *window)
 {
