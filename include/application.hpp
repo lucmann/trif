@@ -38,8 +38,8 @@ class Application : CLI::App {
 public:
     // Allow client to customize other options
     Application() : CLI::App("trif") {
-        add_option("-n", configs.n_frames, "Draw the given number of frames then exit");
-        add_option("-g, --geometry", configs.window_size, "Specify the size of window as WxH (default 800x600)");
+        add_option("-n", config.n_frames, "Draw the given number of frames then exit");
+        add_option("-g, --geometry", config.window_size, "Specify the size of window like -g NNN MMM (default 800x600)");
     }
 
     ~Application() {
@@ -55,6 +55,8 @@ public:
             std::exit(1);
         }
 
+        std::cout << "Window size: " << config.window_size.first << "x"
+                                     << config.window_size.second << std::endl;
         if (!glfwInit()) {
             std::cerr << "Failed to initialize GLFW" << std::endl;
             std::exit(2);
@@ -64,7 +66,8 @@ public:
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        window = glfwCreateWindow(800, 600, "Render to Texture", NULL, NULL);
+        window = glfwCreateWindow(config.window_size.first, config.window_size.second,
+                                  "Render to Texture", NULL, NULL);
         if (!window) {
             std::cerr << "Failed to create GLFW window" << std::endl;
             glfwTerminate();
@@ -96,7 +99,7 @@ public:
 private:
     // Parsed from default options. Application is resposible for providing variables to bind to
     // and to use on their own.
-    Config configs;
+    Config config;
     GLFWwindow* window;
 };
 }
