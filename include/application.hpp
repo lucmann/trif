@@ -91,6 +91,8 @@ public:
     }
 
     void main_loop(std::function<void(void)> render) {
+        glViewport(0, 0, config.window_size.first, config.window_size.second);
+
         while (!glfwWindowShouldClose(window)) {
             processInput(window);
 

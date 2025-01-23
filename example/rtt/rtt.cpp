@@ -98,7 +98,6 @@ int main(int argc, const char *argv[]) {
 
         // First pass: render to texture
         glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-        glViewport(0, 0, 800, 600);
         glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // Green background
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -108,7 +107,6 @@ int main(int argc, const char *argv[]) {
 
         // Second pass: render to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, 800, 600);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black background
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
