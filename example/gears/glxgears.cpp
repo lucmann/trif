@@ -460,7 +460,7 @@ int main(int argc, const char **argv)
 
     // app.add_option("-m, --gears-mask", gears_filter, "Mask gears which need to be drawn (default 'all')");
     // app.add_flag("--fat-draw, !--no-fat-draw", fat_draw, "If put too many vertices in one draw call (default false)");
-    app.add_flag("--fbo, !--no-fbo", use_fbo, "Rendering off-screen using fbo");
+    app.add_flag("--use-fbo", use_fbo, "Rendering off-screen using fbo");
 
     app.init(argc, argv);
 
