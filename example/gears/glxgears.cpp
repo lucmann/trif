@@ -497,7 +497,8 @@ int main(int argc, const char **argv)
     ProgramType program(vertex_source, fragment_source);
     program.use();
 
-    ProjectionMatrix = glm::perspective(glm::radians(60.0f), (float)win_w / (float)win_h, 1.0f, 1024.0f);
+    ProjectionMatrix = glm::perspective(glm::radians(50.0f), (float)win_w / (float)win_h,
+                                        0.01f, 40.0f);
 
     // render loop
     // -----------
