@@ -46,9 +46,9 @@ static const glm::vec4 LightSourcePosition = {5.0, 5.0, 10.0, 1.0};
 
 enum GearMask {
     GEAR_NONE  = 0,
-    GEAR_RED   = 1 << 0,
+    GEAR_BLUE  = 1 << 0,
     GEAR_GREEN = 1 << 1,
-    GEAR_BLUE  = 1 << 2,
+    GEAR_RED   = 1 << 2,
     GEAR_ALL   = GEAR_RED | GEAR_GREEN | GEAR_BLUE
 };
 
@@ -66,7 +66,7 @@ inline GearMask& operator |=(GearMask& lhs, const GearMask& rhs) {
     return lhs = lhs | rhs;
 }
 
-static GearMask gears_filter = GEAR_NONE;
+static GearMask gears_filter = GEAR_ALL;
 
 
 static GLboolean animate = GL_TRUE;     // Animation
@@ -458,7 +458,9 @@ int main(int argc, const char **argv)
 {
     trif::Application app("glxgears");
 
-    // app.add_option("-m, --gears-mask", gears_filter, "Mask gears which need to be drawn (default 'all')");
+    app.add_option("-f, --filter-gears", gears_filter,
+                   "Filter gears bitwisely (7 means all, 4 only red, 2 only green and so on)")
+                   ->expected(0, 7);
     // app.add_flag("--fat-draw, !--no-fat-draw", fat_draw, "If put too many vertices in one draw call (default false)");
     app.add_flag("--use-fbo", use_fbo, "Rendering off-screen using fbo");
 
@@ -466,10 +468,6 @@ int main(int argc, const char **argv)
 
     const uint32_t win_w = app.getWindowWidth();
     const uint32_t win_h = app.getWindowHeight();
-
-    /// Set gears_filter as user demands
-    if (gears_filter == GEAR_NONE)
-        gears_filter = GEAR_ALL;
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
