@@ -32,7 +32,7 @@ struct Config {
     // TODO: add other common config as default
 };
 
-class Application : CLI::App {
+class Application : public CLI::App {
 public:
     // Allow client to customize other options
     Application(const char *title = nullptr) : CLI::App("trif") {
