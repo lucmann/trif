@@ -37,7 +37,8 @@ public:
     // Allow client to customize other options
     Application(const char *title = "") : CLI::App(title) {
         add_option("-n,--frames", config.frames, "Draw the given number of frames then exit");
-        add_option("-g,--geometry", config.window_size, "Specify the size of window like -g NNN MMM (default 800x600)");
+        add_option("-g,--geometry", config.window_size, "Specify the size of window like -g NNNxMMM (default 800x600)")
+                ->delimiter('x');
 
         config.title = title;
     }
