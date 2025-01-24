@@ -101,7 +101,7 @@ public:
         }
     }
 
-    // No SwapBuffers version since an application may want to swap buffers on its own
+    // No SwapBuffers version in case that an application may render to non-default fbo
     // std::function<> doesn't support default parameter, we have to provide
     // two versions of main_loop
     void main_loop(std::function<void(bool)> render) {
