@@ -497,8 +497,24 @@ int main(int argc, const char **argv)
     ProgramType program(vertex_source, fragment_source);
     program.use();
 
-    ProjectionMatrix = glm::perspective(glm::radians(50.0f), (float)win_w / (float)win_h,
-                                        0.01f, 40.0f);
+    // in the mesa/demos, glxgears uses glFrustum() to set up the projection matrix
+    // like this:
+    //
+    // GLfloat h = (GLfloat) height / (GLfloat) width;
+    // glFrustum(-1.0, 1.0, -h, h, 5.0, 60.0);
+    //
+    // There is a following relationship between (left, right, bottom, top) and (fovy, aspect):
+    //
+    // top = tan(fovy / 2) * zNear
+    // bottom = -top
+    //
+    // Hence, fovy = 2 * atan(top / zNear)
+    // But glm::perspective() seems to require 2 times of fovy
+    float aspect = (float)win_h / (float)win_w;
+    float fovy = 2 * 2 * glm::atan(aspect / 5.0f);
+
+    ProjectionMatrix = glm::perspective(fovy, (float)win_w / (float)win_h,
+                                        5.0f, 60.0f);
 
     // render loop
     // -----------
