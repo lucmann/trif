@@ -1,5 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/color_space.hpp> // Include this header for color space conversions
 
 #include "application.hpp"
 
@@ -389,11 +390,7 @@ static void draw_gear(ProgramType &program, struct gear *gear,
 
 /// Draws the gears.
 
-static void draw_gears(ProgramType &program) {
-    const glm::vec4 red = {0.8, 0.1, 0.0, 1.0};
-    const glm::vec4 green = {0.0, 0.8, 0.2, 1.0};
-    const glm::vec4 blue = {0.2, 0.2, 1.0, 1.0};
-
+static void draw_gears(ProgramType &program, std::array<glm::vec4, 3> &rgb) {
     glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -406,15 +403,15 @@ static void draw_gears(ProgramType &program) {
 
     /// Draw the gears
     if (GEAR_RED & gears_filter)
-        draw_gear(program, gear1, transform, glm::vec3(-3.0, -2.0, 0.0), angle, red);
+        draw_gear(program, gear1, transform, glm::vec3(-3.0, -2.0, 0.0), angle, rgb[0]);
     if (GEAR_GREEN & gears_filter)
-        draw_gear(program, gear2, transform, glm::vec3(3.1, -2.0, 0.0), -2 * angle - 9.0, green);
+        draw_gear(program, gear2, transform, glm::vec3(3.1, -2.0, 0.0), -2 * angle - 9.0, rgb[1]);
     if (GEAR_BLUE & gears_filter)
-        draw_gear(program, gear3, transform, glm::vec3(-3.1, 4.2, 0.0), -2 * angle - 25.0, blue);
+        draw_gear(program, gear3, transform, glm::vec3(-3.1, 4.2, 0.0), -2 * angle - 25.0, rgb[2]);
 }
 
 /// Draw single frame, do SwapBuffers, compute FPS
-static void draw_frame(GLFWwindow *window, ProgramType &program) {
+static void draw_frame(GLFWwindow *window, ProgramType &program, std::array<glm::vec4, 3> &rgb) {
     static int frames = 0;
     static double tRot0 = -1.0, tRate0 = -1.0;
     double dt, t = glfwGetTime();
@@ -433,7 +430,7 @@ static void draw_frame(GLFWwindow *window, ProgramType &program) {
             angle -= 3600.0;
     }
 
-    draw_gears(program);
+    draw_gears(program, rgb);
 
     if (use_fbo)
         glFinish();
@@ -458,10 +455,13 @@ int main(int argc, const char **argv)
 {
     trif::Application app("glxgears");
 
+    bool srgb = false;
+
     app.add_option("-f, --filter-gears", gears_filter,
                    "Filter gears bitwisely (7 means all, 4 only red, 2 only green and so on)")
                    ->expected(0, 7);
     // app.add_flag("--fat-draw, !--no-fat-draw", fat_draw, "If put too many vertices in one draw call (default false)");
+    app.add_flag("-s, --srgb", srgb, "Use sRGB color space");
     app.add_flag("--use-fbo", use_fbo, "Rendering off-screen using fbo");
 
     app.init(argc, argv);
@@ -516,10 +516,22 @@ int main(int argc, const char **argv)
     ProjectionMatrix = glm::perspective(fovy, (float)win_w / (float)win_h,
                                         5.0f, 60.0f);
 
+    glm::vec4 red = {0.8, 0.1, 0.0, 1.0};
+    glm::vec4 green = {0.0, 0.8, 0.2, 1.0};
+    glm::vec4 blue = {0.2, 0.2, 1.0, 1.0};
+
+    if (srgb) {
+        red = glm::convertLinearToSRGB(red);
+        green = glm::convertLinearToSRGB(green);
+        blue = glm::convertLinearToSRGB(blue);
+    }
+
+    std::array<glm::vec4, 3> colors = {red, green, blue};
+
     // render loop
     // -----------
     app.main_loop([&](bool) {
-        draw_frame(app.getWindow(), program);
+        draw_frame(app.getWindow(), program, colors);
     });
 
     if (fbo)
