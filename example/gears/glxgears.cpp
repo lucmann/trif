@@ -84,23 +84,13 @@ layout (location = 1) in vec3 normal;
 uniform mat4 ModelView;
 uniform mat4 Projection;
 uniform mat4 NormalMatrix;
-uniform vec4 LightSourcePosition;
-uniform vec4 MaterialColor;
 
-out vec4 Color;
+out vec3 fragNormal;
 
 void main(void)
 {
     // Transform the normal to eye coordinates
-    vec3 N = normalize(vec3(NormalMatrix * vec4(normal, 1.0)));
-
-    // The LightSourcePosition is actually its direction for directional light
-    vec3 L = normalize(LightSourcePosition.xyz);
-
-    // Multiply the diffuse value by the vertex color (which is fixed in this case)
-    // to get the actual color that we will use to draw this vertex with
-    float diffuse = max(dot(N, L), 0.0);
-    Color = diffuse * MaterialColor;
+    fragNormal = normalize(vec3(NormalMatrix * vec4(normal, 1.0)));
 
     // Transform the position to clip coordinates
     gl_Position = Projection * ModelView * vec4(position, 1.0);
@@ -109,13 +99,22 @@ void main(void)
 
 const std::string fragment_source = R"(
 #version 330 core
+
 precision mediump float;
-in vec4 Color;
+
 layout (location = 0) out vec4 fg_FragColor;
+
+in vec3 fragNormal;
+
+uniform vec4 LightSourcePosition;
+uniform vec4 MaterialColor;
 
 void main(void)
 {
-    fg_FragColor = Color;
+    // Lambertian reflection
+    float diff = max(dot(fragNormal, normalize(LightSourcePosition.xyz)), 0.0);
+    vec3 diffuse = diff * MaterialColor.rgb;
+    fg_FragColor = vec4(diffuse, MaterialColor.a);
 }
 )";
 
