@@ -75,7 +75,7 @@ static bool fat_draw = false;         // true if we put too many vertices in one
 static bool use_fbo = false;          // true if we are rendering off-screen using fbo
 
 const std::string vertex_source = R"(
-#version 330 core
+#version 420 core
 
 precision mediump float;
 layout (location = 0) in vec3 position;
@@ -85,12 +85,17 @@ uniform mat4 ModelView;
 uniform mat4 Projection;
 uniform mat4 NormalMatrix;
 
-out vec3 fragNormal;
+layout (location = 0) out vec3 outNormal;
+layout (location = 1) out vec3 outEyePos;
 
 void main(void)
 {
     // Transform the normal to eye coordinates
-    fragNormal = normalize(vec3(NormalMatrix * vec4(normal, 1.0)));
+    outNormal = normalize(vec3(NormalMatrix * vec4(normal, 1.0)));
+
+    // Transform the eye position
+    vec4 pos = ModelView * vec4(position, 1.0);
+    outEyePos = vec3(ModelView * pos);
 
     // Transform the position to clip coordinates
     gl_Position = Projection * ModelView * vec4(position, 1.0);
@@ -98,13 +103,14 @@ void main(void)
 )";
 
 const std::string fragment_source = R"(
-#version 330 core
+#version 420 core
 
 precision mediump float;
 
 layout (location = 0) out vec4 fg_FragColor;
 
-in vec3 fragNormal;
+layout (location = 0) in vec3 inNormal;
+layout (location = 1) in vec3 inEyePos;
 
 uniform vec4 LightSourcePosition;
 uniform vec4 MaterialColor;
@@ -112,9 +118,17 @@ uniform vec4 MaterialColor;
 void main(void)
 {
     // Lambertian reflection
-    float diff = max(dot(fragNormal, normalize(LightSourcePosition.xyz)), 0.0);
-    vec3 diffuse = diff * MaterialColor.rgb;
-    fg_FragColor = vec4(diffuse, MaterialColor.a);
+    vec3 Eye = normalize(-inEyePos);
+    vec3 LightVec = normalize(LightSourcePosition.xyz - inEyePos);
+    vec3 Reflected = normalize(reflect(-LightVec, inNormal));
+
+    vec4 IAmbient = vec4(0.2, 0.2, 0.2, 1.0);
+    vec4 IDiffuse = vec4(0.5, 0.5, 0.5, 0.5) * max(dot(inNormal, LightVec), 0.0);
+
+    float specular = 0.25;
+    vec4 ISpecular = vec4(0.5, 0.5, 0.5, 1.0) * pow(max(dot(Reflected, Eye), 0.0), 0.8) * specular;
+
+    fg_FragColor = vec4((IAmbient + IDiffuse) * MaterialColor + ISpecular);
 }
 )";
 
