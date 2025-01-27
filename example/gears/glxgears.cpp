@@ -276,7 +276,7 @@ static struct gear *create_gear(GLfloat inner_radius, GLfloat outer_radius,
         v = GEAR_VERT(v, 6, +1);
         END_STRIP;
 
-        /// Inner face
+        /// Inner cylinder face
         START_STRIP;
         QUAD_WITH_NORMAL(4, 6);
         END_STRIP;
