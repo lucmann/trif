@@ -94,8 +94,8 @@ void main(void)
     outNormal = normalize(vec3(NormalMatrix * vec4(normal, 1.0)));
 
     // Transform the eye position
-    vec4 pos = ModelView * vec4(position, 1.0);
-    outEyePos = vec3(ModelView * pos);
+    // vec4 pos = ModelView * vec4(position, 1.0);
+    outEyePos = vec3(ModelView * vec4(position, 1.0));
 
     // Transform the position to clip coordinates
     gl_Position = Projection * ModelView * vec4(position, 1.0);
@@ -241,7 +241,8 @@ static struct gear *create_gear(GLfloat inner_radius, GLfloat outer_radius,
 
 #define QUAD_WITH_NORMAL(p1, p2)                                               \
     do {                                                                       \
-        SET_NORMAL((p[(p1)].y - p[(p2)].y), -(p[(p1)].x - p[(p2)].x), 0);      \
+        float angle = i * 2.0 * M_PI / teeth;                                  \
+        SET_NORMAL(-cos(angle), -sin(angle), 0);                               \
         v = GEAR_VERT(v, (p1), -1);                                            \
         v = GEAR_VERT(v, (p1), 1);                                             \
         v = GEAR_VERT(v, (p2), -1);                                            \
